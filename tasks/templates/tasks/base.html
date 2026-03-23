@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Hangarin{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink:       #0d1117;
+        --ink-soft:  #374151;
+        --ink-muted: #6b7280;
+        --sage:      #3d7a5e;
+        --sage-mid:  #2d6a4f;
+        --sage-deep: #1b4332;
+        --mint:      #a7f3d0;
+        --mint-light:#d1fae5;
+        --cream:     #fafaf7;
+        --white:     #ffffff;
+        --border:    rgba(61, 122, 94, 0.15);
+        --shadow-sm: 0 1px 3px rgba(13,17,23,0.06), 0 1px 2px rgba(13,17,23,0.04);
+        --shadow-md: 0 4px 16px rgba(13,17,23,0.08), 0 2px 6px rgba(13,17,23,0.04);
+        --shadow-lg: 0 20px 48px rgba(13,17,23,0.12), 0 8px 20px rgba(13,17,23,0.06);
+        --radius-sm: 0.5rem;
+        --radius-md: 0.875rem;
+        --radius-lg: 1.5rem;
+        --radius-xl: 2rem;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html, body { height: 100%; }
+
+      body {
+        font-family: 'DM Sans', system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.7;
+        color: var(--ink);
+        background-color: var(--cream);
+        min-height: 100vh;
+        background-image:
+          radial-gradient(ellipse 80% 50% at 110% -10%, rgba(167,243,208,0.35) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 40% at -10% 110%, rgba(45,106,79,0.12) 0%, transparent 55%);
+        background-attachment: fixed;
+      }
+
+      /* ─── Decorative grain overlay ─── */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.4;
+      }
+
+      /* ─── Navbar ─── */
+      .navbar {
+        background: rgba(27, 67, 50, 0.97) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(167,243,208,0.12);
+        padding: 0.85rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 20px rgba(13,17,23,0.18);
+      }
+
+      .navbar-brand {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-weight: 900;
+        font-size: 1.55rem;
+        letter-spacing: -0.02em;
+        color: var(--mint-light) !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .navbar-brand::before {
+        content: '✦';
+        font-size: 0.9rem;
+        color: var(--mint);
+        animation: spin-slow 8s linear infinite;
+      }
+
+      @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+
+      .nav-link {
+        font-weight: 500;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+        color: rgba(209, 250, 229, 0.75) !important;
+        padding: 0.45rem 1rem !important;
+        border-radius: var(--radius-sm);
+        transition: all 0.18s ease;
+        position: relative;
+      }
+
+      .nav-link:hover, .nav-link.active {
+        color: var(--mint-light) !important;
+        background: rgba(167,243,208,0.1);
+      }
+
+      .navbar-text {
+        font-size: 0.8rem;
+        color: rgba(167, 243, 208, 0.45) !important;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .navbar-toggler {
+        border-color: rgba(167,243,208,0.3) !important;
+      }
+
+      /* ─── Main layout ─── */
+      main.container {
+        max-width: 1140px;
+        position: relative;
+        z-index: 1;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+      }
+
+      /* ─── Page header strip ─── */
+      .page-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .page-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        letter-spacing: -0.03em;
+        color: var(--sage-deep);
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      .page-header .subtitle {
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+        margin: 0;
+        font-weight: 400;
+      }
+
+      /* ─── Cards ─── */
+      .glass-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+        position: relative;
+      }
+
+      .task-card {
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: var(--white);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: visible;
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .task-card .card-body {
+        padding: 1.25rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .task-card .card-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+        line-height: 1.4;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        margin-bottom: 0.5rem;
+      }
+
+      .glass-card::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sage), var(--mint));
+        opacity: 0;
+        transition: opacity 0.22s ease;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      }
+
+      .glass-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .glass-card:hover::after {
+        opacity: 1;
+      }
+
+      /* ─── Stat cards ─── */
+      .stat-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        padding: 1.25rem 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .stat-card::before {
+        content: '';
+        position: absolute;
+        right: -1rem;
+        bottom: -1rem;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--mint-light), transparent 70%);
+        opacity: 0.6;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .stat-number {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 5vw, 2.6rem);
+        font-weight: 900;
+        color: var(--sage-deep);
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .stat-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-muted);
+        margin-top: 0.35rem;
+      }
+
+      /* ─── Task cards ─── */
+      .task-card {
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        background: var(--white);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: visible;        /* don't clip content */
+        height: 100%;             /* stretch to fill column */
+        min-height: 0;            /* remove any forced height */
+        display: flex;
+        flex-direction: column;
+      }
+
+      .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .task-card .card-body {
+        padding: 1.25rem;
+        flex: 1;                  /* body grows to fill available space */
+        display: flex;
+        flex-direction: column;
+      }
+
+      .task-card .card-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+        line-height: 1.4;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        margin-bottom: 0.5rem;
+        /* removed -webkit-line-clamp so full title always shows */
+      }
+
+      /* Push footer content (badges, buttons) to bottom of card */
+      .task-card .card-footer-area {
+        margin-top: auto;
+        padding-top: 0.75rem;
+      }
+
+      /* ─── Badges ─── */
+      .badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 0.3em 0.75em;
+        border-radius: 2rem;
+      }
+
+      .badge-pending {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+      }
+
+      .badge-in-progress {
+        background: #eff6ff;
+        color: #3b82f6;
+        border: 1px solid #bfdbfe;
+      }
+
+      .badge-completed {
+        background: #f0fdf4;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+      }
+
+      .badge-overdue {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+
+      .badge-due-soon {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+      }
+
+      /* ─── Buttons ─── */
+      .btn {
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.01em;
+        border-radius: var(--radius-sm);
+        padding: 0.55rem 1.3rem;
+        transition: all 0.18s ease;
+        border: none;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      .btn:active { transform: translateY(0); }
+
+      .btn-primary, .btn-gradient, .btn-success {
+        background: linear-gradient(135deg, var(--sage) 0%, var(--sage-deep) 100%);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(45,106,79,0.3);
+      }
+
+      .btn-primary:hover, .btn-gradient:hover, .btn-success:hover {
+        background: linear-gradient(135deg, #2d6a4f 0%, #1a3a2a 100%);
+        color: #fff;
+        box-shadow: 0 6px 16px rgba(45,106,79,0.4);
+      }
+
+      .btn-outline-secondary {
+        background: transparent;
+        border: 1.5px solid var(--border);
+        color: var(--ink-soft);
+      }
+
+      .btn-outline-secondary:hover {
+        background: var(--mint-light);
+        border-color: var(--sage);
+        color: var(--sage-deep);
+      }
+
+      .btn-outline-danger {
+        background: transparent;
+        border: 1.5px solid #fecaca;
+        color: #dc2626;
+      }
+
+      .btn-outline-danger:hover {
+        background: #fef2f2;
+        border-color: #dc2626;
+        color: #dc2626;
+        box-shadow: 0 4px 12px rgba(220,38,38,0.1);
+      }
+
+      /* ─── Forms ─── */
+      .form-control, .form-select {
+        border-radius: var(--radius-sm);
+        border: 1.5px solid #e5e7eb;
+        font-size: 0.95rem;
+        padding: 0.55rem 0.9rem;
+        color: var(--ink);
+        background: var(--white);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .form-control:focus, .form-select:focus {
+        border-color: var(--sage);
+        box-shadow: 0 0 0 3px rgba(61,122,94,0.12);
+        outline: none;
+      }
+
+      .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: var(--ink-soft);
+        margin-bottom: 0.4rem;
+      }
+
+      /* ─── Card headers ─── */
+      .card-header {
+        background: linear-gradient(135deg, var(--sage-deep), var(--sage-mid));
+        color: var(--mint-light);
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.03em;
+        padding: 0.85rem 1.25rem;
+        border-bottom: none;
+      }
+
+      .card-title, .glass-card .card-title, .task-card .card-title {
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: break-word;
+      }
+
+      .list-group-item,
+      .list-group-item .fw-bold,
+      .list-group-item span,
+      .list-group-item p,
+      .list-group-item small {
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: break-word;
+      }
+
+      /* ─── Section divider ─── */
+      .section-divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 2rem 0 1.25rem;
+        color: var(--ink-muted);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .section-divider::before,
+      .section-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* ─── Alerts ─── */
+      .alert {
+        border-radius: var(--radius-md);
+        border: 1px solid transparent;
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 0.9rem 1.3rem;
+      }
+
+      .alert-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+      }
+
+      .alert-danger {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+      }
+
+      .alert-warning {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #92400e;
+      }
+
+      .alert-info {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #1e40af;
+      }
+
+      /* ─── Empty state ─── */
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--ink-muted);
+      }
+
+      .empty-state .empty-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+        opacity: 0.35;
+      }
+
+      .empty-state h5 {
+        font-family: 'Playfair Display', serif;
+        color: var(--ink-soft);
+        margin-bottom: 0.5rem;
+      }
+
+      /* ─── Tables ─── */
+      .table {
+        font-size: 0.9rem;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      .table th {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink-muted);
+        background: #f8fafc;
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1rem;
+      }
+
+      .table td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        color: var(--ink-soft);
+      }
+
+      .table tbody tr:hover td {
+        background: #fafffe;
+      }
+
+      .table tbody tr:last-child td { border-bottom: none; }
+
+      /* ─── Priority pill ─── */
+      .priority-high    { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
+      .priority-medium  { color: #d97706; background: #fffbeb; border: 1px solid #fde68a; }
+      .priority-low     { color: #16a34a; background: #f0fdf4; border: 1px solid #bbf7d0; }
+      .priority-critical{ color: #7c3aed; background: #f5f3ff; border: 1px solid #ddd6fe; }
+      .priority-optional{ color: #6b7280; background: #f9fafb; border: 1px solid #e5e7eb; }
+
+      /* ─── Scroll animation ─── */
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .fade-up { animation: fade-up 0.45s ease both; }
+      .fade-up-1 { animation-delay: 0.05s; }
+      .fade-up-2 { animation-delay: 0.1s; }
+      .fade-up-3 { animation-delay: 0.15s; }
+      .fade-up-4 { animation-delay: 0.2s; }
+
+      /* ─── Footer ─── */
+      footer {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: var(--ink-muted);
+        font-size: 0.85rem;
+        letter-spacing: 0.04em;
+        position: relative;
+        z-index: 1;
+        border-top: 1px solid var(--border);
+        margin-top: 2rem;
+      }
+
+      footer .brand-foot {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        color: var(--sage);
+      }
+
+      /* ─── Scrollbar ─── */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(61,122,94,0.25);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover { background: var(--sage); }
+
+      /* ─── Responsive ─── */
+      @media (max-width: 767px) {
+        main.container { padding: 1.25rem; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .stat-number { font-size: 2rem; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'tasks:task_list' %}">Hangarin</a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto ms-3">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'tasks:task_list' %}">Tasks</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'tasks:task_create' %}">+ New Task</a>
+            </li>
+          </ul>
+          <span class="navbar-text">Task &amp; To-Do Manager</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+    <main class="container">
+
+      <!-- Flash messages -->
+      {% if messages %}
+        <div class="mb-4 fade-up">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+    <footer>
+      <span class="brand-foot">Hangarin</span> &nbsp;·&nbsp; Simple task manager &nbsp;·&nbsp; &copy; {% now 'Y' %}
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <script>
+      // Auto-dismiss alerts after 4 seconds
+      document.querySelectorAll('.alert').forEach(el => {
+        setTimeout(() => {
+          const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+          bsAlert.close();
+        }, 4000);
+      });
+
+      // Mark active nav link
+      const path = window.location.pathname;
+      document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === path) link.classList.add('active');
+      });
+    </script>
+  </body>
+</html>
