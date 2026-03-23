@@ -1,0 +1,113 @@
+from datetime import timedelta
+
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
+from django.views import generic
+
+from .forms import NoteForm, SubTaskForm, TaskForm
+from .models import Note, SubTask, Task
+
+
+class TaskListView(generic.ListView):
+    model = Task
+    context_object_name = "tasks"
+    paginate_by = 20
+    ordering = ["-created_at"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        q = self.request.GET.get("q")
+        status = self.request.GET.get("status", "all")
+
+        if q:
+            qs = qs.filter(title__icontains=q) | qs.filter(description__icontains=q)
+
+        if status and status != "all":
+            qs = qs.filter(status=status)
+
+        return qs.order_by(*self.ordering)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        now = timezone.now()
+
+        all_tasks = Task.objects.all()
+
+        status = self.request.GET.get("status", "all")
+
+        context["q"] = self.request.GET.get("q", "")
+        context["status"] = status
+        context["status_choices"] = ["all", "Pending", "In Progress", "Completed"]
+
+        context["total_tasks"] = all_tasks.count()
+        context["pending_count"] = all_tasks.filter(status="Pending").count()
+        context["in_progress_count"] = all_tasks.filter(status="In Progress").count()
+        context["completed_count"] = all_tasks.filter(status="Completed").count()
+
+        context["due_soon_tasks"] = (
+            all_tasks
+            .filter(deadline__gte=now, deadline__lte=now + timedelta(days=2))
+            .exclude(status="Completed")
+            .order_by("deadline")[:5]
+        )
+        context["overdue_tasks"] = (
+            all_tasks.filter(deadline__lt=now).exclude(status="Completed").order_by("deadline")[:5]
+        )
+        context["recent_tasks"] = all_tasks.order_by("-created_at")[:5]
+        return context
+
+
+class TaskDetailView(generic.DetailView):
+    model = Task
+
+
+class TaskCreateView(generic.CreateView):
+    model = Task
+    form_class = TaskForm
+    success_url = reverse_lazy("tasks:task_list")
+
+
+class TaskUpdateView(generic.UpdateView):
+    model = Task
+    form_class = TaskForm
+    template_name_suffix = "_form"
+
+    def get_success_url(self):
+        return reverse("tasks:task_detail", kwargs={"pk": self.object.pk})
+
+
+class TaskDeleteView(generic.DeleteView):
+    model = Task
+    success_url = reverse_lazy("tasks:task_list")
+
+
+class SubTaskCreateView(generic.CreateView):
+    model = SubTask
+    form_class = SubTaskForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.task = Task.objects.get(pk=kwargs["task_pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.parent_task = self.task
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("tasks:task_detail", kwargs={"pk": self.task.pk})
+
+
+class NoteCreateView(generic.CreateView):
+    model = Note
+    form_class = NoteForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.task = Task.objects.get(pk=kwargs["task_pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.task = self.task
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("tasks:task_detail", kwargs={"pk": self.task.pk})
