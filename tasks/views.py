@@ -1,5 +1,7 @@
+import os
 from datetime import timedelta
 
+import requests
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -55,7 +57,55 @@ class TaskListView(generic.ListView):
             all_tasks.filter(deadline__lt=now).exclude(status="Completed").order_by("deadline")[:5]
         )
         context["recent_tasks"] = all_tasks.order_by("-created_at")[:5]
+
+        weather_city = self.request.GET.get("weather_city", "Manila")
+        context["weather_city"] = weather_city
+        context["weather_data"] = self.get_weather_data(weather_city)
         return context
+
+    def get_weather_data(self, city="Manila"):
+        api_key = os.getenv("OPENWEATHER_API_KEY")
+        if not api_key:
+            return {
+                "error": "OpenWeather API key not configured. Set OPENWEATHER_API_KEY in your environment.",
+            }
+
+        url = "https://api.openweathermap.org/data/2.5/forecast"
+        params = {
+            "q": city,
+            "appid": api_key,
+            "units": "metric",
+        }
+
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            forecast_items = []
+            for item in data.get("list", [])[:6]:
+                forecast_items.append({
+                    "time": item["dt_txt"],
+                    "temp": round(item["main"]["temp"]),
+                    "description": item["weather"][0]["description"].title(),
+                    "icon": item["weather"][0]["icon"],
+                })
+
+            return {
+                "city": data["city"]["name"],
+                "country": data["city"]["country"],
+                "current": forecast_items[0] if forecast_items else {},
+                "forecast": forecast_items,
+            }
+        except requests.exceptions.RequestException as exc:
+            return {
+                "error": "Unable to fetch weather data. Please check your network or API key.",
+                "details": str(exc),
+            }
+        except (KeyError, IndexError):
+            return {
+                "error": f"No weather data found for '{city}'.",
+            }
 
 
 class TaskDetailView(generic.DetailView):
