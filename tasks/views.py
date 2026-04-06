@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views import generic
@@ -111,3 +112,40 @@ class NoteCreateView(generic.CreateView):
 
     def get_success_url(self):
         return reverse("tasks:task_detail", kwargs={"pk": self.task.pk})
+
+
+def manifest(request):
+    """Serve PWA manifest.json"""
+    manifest_data = {
+        "name": "Hangarin Task Manager",
+        "short_name": "Hangarin",
+        "description": "A Progressive Web App for task management and organization",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "orientation": "portrait-primary",
+        "theme_color": "#1b4332",
+        "background_color": "#fafaf7",
+        "categories": ["productivity"],
+        "icons": [
+            {
+                "src": "/static/img/icon-192x192.png",
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any"
+            },
+            {
+                "src": "/static/img/icon-512x512.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any"
+            },
+            {
+                "src": "/static/img/icon-512x512-maskable.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "maskable"
+            }
+        ]
+    }
+    return JsonResponse(manifest_data)
